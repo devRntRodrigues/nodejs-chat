@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Config files
+*.config.js
+*.config.ts
+
+# Coverage
+coverage/
