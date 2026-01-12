@@ -13,8 +13,12 @@
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
+    "docker:up": "docker compose up -d mongo mongo-express",
+    "docker:down": "docker compose down -v",
+    "docker:logs": "docker compose logs -f --tail=200",
+    "docker:up:all": "docker compose up -d --build",
+    "docker:dev:all": "docker compose up --build",
+    "docker:restart": "docker compose restart api web",
     "prepare": "husky"
   },
   "devDependencies": {
