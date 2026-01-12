@@ -2,7 +2,7 @@
 
 > Real-time chat application with WebSocket support built with Express, Socket.IO, and Next.js
 
-## 🚀 Stack Tecnológica
+## 🚀 Stacks
 
 ### Backend (API)
 
@@ -193,7 +193,9 @@ pnpm docker:restart
 pnpm docker:down
 ```
 
-##Evidências
+## Evidências
+
+
 Mensagens Salvas no banco de dados e persistidas
 <img width="1242" height="705" alt="image" src="https://github.com/user-attachments/assets/80662dee-6831-4966-879c-1c6dd92e50dd" />
 
