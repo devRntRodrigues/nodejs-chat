@@ -193,4 +193,4 @@ pnpm docker:down
 
 ## 👥 Autores
 
-Desenvolvido com ❤️ por [DevRnT]
+Desenvolvido por [DevRnT]
