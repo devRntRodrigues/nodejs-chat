@@ -8,7 +8,7 @@ export async function getUnreadCounts(userId: string): Promise<Record<string, nu
   const unreadMessages = await Message.aggregate([
     {
       $match: {
-        to: userId,
+        to: new mongoose.Types.ObjectId(userId),
         read: false,
       },
     },
@@ -59,7 +59,12 @@ export async function getConversationsWithUnread(userId: string) {
   return conversationsWithUnread;
 }
 
-export async function getMessagesBetweenUsers(currentUserId: string, otherUserId: string) {
+export async function getMessagesBetweenUsers(
+  currentUserId: string,
+  otherUserId: string,
+  limit: number = 20,
+  cursor?: string
+) {
   if (!otherUserId || !mongoose.Types.ObjectId.isValid(otherUserId)) {
     throw new NotFoundError('User ID is required');
   }
@@ -69,16 +74,26 @@ export async function getMessagesBetweenUsers(currentUserId: string, otherUserId
     throw new NotFoundError('User not found');
   }
 
-  const messages = await Message.find({
+  const query: Record<string, unknown> = {
     $or: [
       { from: currentUserId, to: otherUserId },
       { from: otherUserId, to: currentUserId },
     ],
-  })
-    .sort({ createdAt: 1 })
+  };
+
+  if (cursor && mongoose.Types.ObjectId.isValid(cursor)) {
+    query._id = { $gt: new mongoose.Types.ObjectId(cursor) };
+  }
+
+  const messages = await Message.find(query)
+    .sort({ _id: 1 })
+    .limit(limit)
     .populate('from', 'name username')
     .populate('to', 'name username')
     .lean();
 
-  return messages;
+  const last = messages.at(-1) as { _id: mongoose.Types.ObjectId } | undefined;
+  const nextCursor = messages.length === limit && last ? last._id.toString() : null;
+
+  return { messages, nextCursor };
 }

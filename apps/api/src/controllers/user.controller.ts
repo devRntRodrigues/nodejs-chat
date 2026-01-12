@@ -1,13 +1,14 @@
 import { getCurrentUserById, getAllUsersExcept } from '../services/user.service';
 import { asyncHandler } from '../utils/asyncHandler';
 import { requireUserId } from '../utils/authUser';
+import { ok } from '../utils/http';
 
 export const getCurrentUser = asyncHandler(async (req, res) => {
   const userId = requireUserId(req);
 
   const user = await getCurrentUserById(userId);
 
-  res.json({ user });
+  ok(res, { user });
 });
 
 export const getAllUsers = asyncHandler(async (req, res) => {
@@ -15,5 +16,5 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
   const users = await getAllUsersExcept(currentUserId);
 
-  res.json({ users });
+  ok(res, { users });
 });

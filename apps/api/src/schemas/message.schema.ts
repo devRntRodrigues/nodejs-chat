@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { objectIdSchema, paginationSchema } from './common.schema';
+import { objectIdSchema } from './common.schema';
 
 export const sendMessageSchema = z.object({
   to: objectIdSchema,
@@ -21,10 +21,18 @@ export const getMessagesParamsSchema = z.object({
   userId: objectIdSchema,
 });
 
-export const getMessagesQuerySchema = paginationSchema.partial();
+export const getMessagesQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  cursor: z.string().optional(),
+});
 
-export const getConversationsQuerySchema = paginationSchema.partial();
+export const getConversationsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(30),
+  cursor: objectIdSchema.optional(),
+});
 
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 export type MarkReadInput = z.infer<typeof markReadSchema>;
 export type GetMessagesParams = z.infer<typeof getMessagesParamsSchema>;
+export type GetMessagesQuery = z.infer<typeof getMessagesQuerySchema>;
+export type GetConversationsQuery = z.infer<typeof getConversationsQuerySchema>;
