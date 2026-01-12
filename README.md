@@ -113,6 +113,8 @@ Para ver os logs depois:
 pnpm docker:logs
 ```
 
+
+
 ### 🌐 URLs no Docker
 
 As URLs são as mesmas, pois os containers expõem as portas para o host:
@@ -190,6 +192,16 @@ pnpm docker:restart
 # Parar tudo e remover volumes
 pnpm docker:down
 ```
+
+##Evidências
+Mensagens Salvas no banco de dados e persistidas
+<img width="1242" height="705" alt="image" src="https://github.com/user-attachments/assets/80662dee-6831-4966-879c-1c6dd92e50dd" />
+
+Aviso de Novas mensagens user online e last seen
+<img width="2520" height="1734" alt="image" src="https://github.com/user-attachments/assets/cd4ab9b3-8d67-4ff5-a476-7341dcef60b2" />
+
+
+
 
 ## 👥 Autores
 
