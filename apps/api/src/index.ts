@@ -1,45 +1,77 @@
 import { createServer } from 'http';
+import type { Server as HTTPServer } from 'http';
+import type { Server as SocketIOServer } from 'socket.io';
 import { config } from './config/env';
-import { connectDB } from './config/db';
+import { connectDB, disconnectDB } from './config/db';
 import { createApp } from './server';
 import { createSocketServer } from './config/socket';
 import { setupSocketHandlers } from './socket/handlers';
 import { logger } from './config/logger';
 
+interface StartServerOptions {
+  port?: number;
+}
+
+interface ServerInstances {
+  httpServer: HTTPServer;
+  io: SocketIOServer;
+  port: number;
+}
+
+export async function startServer(options: StartServerOptions = {}): Promise<ServerInstances> {
+  const { port = config.PORT } = options;
+
+  await connectDB(process.env.MONGODB_URI || config.MONGO_URI);
+
+  const app = createApp();
+
+  const httpServer = createServer(app);
+
+  const io = createSocketServer(httpServer);
+
+  setupSocketHandlers(io);
+
+  await new Promise<void>((resolve) => {
+    httpServer.listen(port, () => {
+      resolve();
+    });
+  });
+
+  const address = httpServer.address();
+  const actualPort = typeof address === 'object' && address !== null ? address.port : port;
+
+  logger.info(`🚀 API server running on http://localhost:${actualPort}`);
+  logger.info(`📝 Environment: ${config.NODE_ENV}`);
+  logger.info(`🔌 Socket.IO server ready`);
+
+  return { httpServer, io, port: actualPort };
+}
+
+export async function stopServer({
+  httpServer,
+  io,
+}: Pick<ServerInstances, 'httpServer' | 'io'>): Promise<void> {
+  return new Promise<void>((resolve) => {
+    io.close(() => {
+      logger.info('Socket.IO server closed');
+      httpServer.close(async () => {
+        logger.info('HTTP server closed');
+        await disconnectDB();
+        resolve();
+      });
+    });
+  });
+}
+
 async function start() {
   try {
-    // Connect to database
-    await connectDB(config.MONGO_URI);
-
-    // Create Express app
-    const app = createApp();
-
-    // Create HTTP server
-    const httpServer = createServer(app);
-
-    // Create Socket.IO server
-    const io = createSocketServer(httpServer);
-
-    // Setup Socket.IO handlers
-    setupSocketHandlers(io);
-
-    // Start server
-    httpServer.listen(config.PORT, () => {
-      logger.info(`🚀 API server running on http://localhost:${config.PORT}`);
-      logger.info(`📝 Environment: ${config.NODE_ENV}`);
-      logger.info(`🔌 Socket.IO server ready`);
-    });
+    const { httpServer, io } = await startServer();
 
     // Graceful shutdown
     const shutdown = async (signal: string) => {
       logger.info(`${signal} received, shutting down gracefully...`);
-      io.close(() => {
-        logger.info('Socket.IO server closed');
-        httpServer.close(async () => {
-          logger.info('HTTP server closed');
-          process.exit(0);
-        });
-      });
+      await stopServer({ httpServer, io });
+      process.exit(0);
     };
 
     process.on('SIGTERM', () => shutdown('SIGTERM'));
@@ -50,4 +82,6 @@ async function start() {
   }
 }
 
-start();
+if (import.meta.url === `file://${process.argv[1]}`) {
+  start();
+}

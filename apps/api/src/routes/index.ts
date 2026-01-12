@@ -1,15 +1,8 @@
 import { Router } from 'express';
-import authRoutes from './auth.routes';
-import userRoutes from './user.routes';
-import messageRoutes from './message.routes';
-import healthRoutes from './health.routes';
+import v1Routes from './v1';
 
 const router = Router();
 
-router.use('/health', healthRoutes);
-router.use('/auth', authRoutes);
-router.use('/users', userRoutes);
-router.use('/messages', messageRoutes);
-router.use('/conversations', messageRoutes);
+router.use('/v1', v1Routes);
 
 export default router;

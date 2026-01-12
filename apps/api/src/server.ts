@@ -44,7 +44,7 @@ export function createApp() {
 
   app.use('/api/v1/auth', authLimiter);
 
-  app.use('/api/v1', routes);
+  app.use('/api', routes);
 
   app.use((_req: Request, res: Response) => {
     res.status(404).json({
