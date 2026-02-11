@@ -30,40 +30,35 @@ export function setupBrokerHandlers(_connection: NatsConnection, io: SocketIOSer
 
     const { fromUserId, toUserId, content } = parsed.data;
 
-    try {
-      const { message, conversation } = await sendMessageService({
-        fromUserId,
-        toUserId,
-        content,
-      });
+    const { message, conversation } = await sendMessageService({
+      fromUserId,
+      toUserId,
+      content,
+    });
 
-      const fromUser = message.from as { name?: string; username?: string };
-      const name = fromUser?.name ?? '';
-      const username = fromUser?.username ?? '';
+    const fromUser = message.from as { name?: string; username?: string };
+    const name = fromUser?.name ?? '';
+    const username = fromUser?.username ?? '';
 
-      io.to(`user:${fromUserId}`).emit('message:sent', { message });
-      io.to(`user:${toUserId}`).emit('message:new', { message });
-      io.to(`user:${toUserId}`).emit('notification:new', {
-        id: message._id.toString(),
-        type: 'message',
-        from: { id: fromUserId, name, username },
-        message: `New message from @${username}`,
-        preview: content.substring(0, 50),
-        conversationId: conversation._id.toString(),
-        timestamp: new Date(),
-      });
+    io.to(`user:${fromUserId}`).emit('message:sent', { message });
+    io.to(`user:${toUserId}`).emit('message:new', { message });
+    io.to(`user:${toUserId}`).emit('notification:new', {
+      id: message._id.toString(),
+      type: 'message',
+      from: { id: fromUserId, name, username },
+      message: `New message from @${username}`,
+      preview: content.substring(0, 50),
+      conversationId: conversation._id.toString(),
+      timestamp: new Date(),
+    });
 
-      logger.info({ fromUserId, toUserId, messageId: message._id }, 'Message sent via broker');
+    logger.info({ fromUserId, toUserId, messageId: message._id }, 'Message sent via broker');
 
-      return {
-        success: true,
-        messageId: message._id.toString(),
-        timestamp: new Date(),
-      };
-    } catch (error) {
-      logger.error({ err: error, fromUserId, toUserId }, 'Broker message.send failed');
-      throw error;
-    }
+    return {
+      success: true,
+      messageId: message._id.toString(),
+      timestamp: new Date(),
+    };
   });
 
   registerHandler('message.read', async (payload, _msg) => {
@@ -79,28 +74,23 @@ export function setupBrokerHandlers(_connection: NatsConnection, io: SocketIOSer
 
     const { userId, messageIds } = parsed.data;
 
-    try {
-      const { modifiedCount, bySender } = await markMessagesReadService({ userId, messageIds });
+    const { modifiedCount, bySender } = await markMessagesReadService({ userId, messageIds });
 
-      if (modifiedCount > 0) {
-        for (const { senderId, messageIds: ids } of bySender) {
-          io.to(`user:${senderId}`).emit('message:read', {
-            messageIds: ids,
-            readBy: userId,
-          });
-        }
-        logger.info({ userId, modifiedCount }, 'Messages marked read via broker');
+    if (modifiedCount > 0) {
+      for (const { senderId, messageIds: ids } of bySender) {
+        io.to(`user:${senderId}`).emit('message:read', {
+          messageIds: ids,
+          readBy: userId,
+        });
       }
-
-      return {
-        success: true,
-        messageIds,
-        modifiedCount,
-      };
-    } catch (error) {
-      logger.error({ err: error, userId }, 'Broker message.read failed');
-      throw error;
+      logger.info({ userId, modifiedCount }, 'Messages marked read via broker');
     }
+
+    return {
+      success: true,
+      messageIds,
+      modifiedCount,
+    };
   });
 
   registerHandler('typing.start', async (payload) => {
@@ -135,13 +125,8 @@ export function setupBrokerHandlers(_connection: NatsConnection, io: SocketIOSer
     }
 
     const { userId, socketId, username, name } = parsed.data;
-    try {
-      const result = await handleUserConnect(userId, socketId, username, name, io);
-      return { success: true, ...result };
-    } catch (error) {
-      logger.error({ err: error, userId, socketId }, 'Broker presence.connect failed');
-      throw error;
-    }
+    const result = await handleUserConnect(userId, socketId, username, name, io);
+    return { success: true, ...result };
   });
 
   registerHandler('presence.disconnect', async (payload) => {
@@ -152,12 +137,7 @@ export function setupBrokerHandlers(_connection: NatsConnection, io: SocketIOSer
     }
 
     const { userId, socketId, username } = parsed.data;
-    try {
-      const result = await handleUserDisconnect(userId, socketId, username, io);
-      return { success: true, ...result };
-    } catch (error) {
-      logger.error({ err: error, userId, socketId }, 'Broker presence.disconnect failed');
-      throw error;
-    }
+    const result = await handleUserDisconnect(userId, socketId, username, io);
+    return { success: true, ...result };
   });
 }

@@ -32,13 +32,9 @@ export async function handleUserDisconnect(
   const wasLastConnection = removeUserSocket(userId, socketId);
 
   if (wasLastConnection) {
-    try {
-      await User.findByIdAndUpdate(userId, {
-        lastSeen: new Date(),
-      });
-    } catch (error) {
-      logger.error({ err: error, userId }, 'Error updating lastSeen');
-    }
+    await User.findByIdAndUpdate(userId, {
+      lastSeen: new Date(),
+    });
 
     io.emit('user:offline', { userId, username });
     logger.info({ userId, username, socketId }, 'User went offline');
