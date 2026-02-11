@@ -46,13 +46,7 @@ export const closeBroker = async (connection: NatsConnection): Promise<void> => 
 
     logger.info('NATS connection drained successfully');
   } catch (error) {
+    await connection.close();
     logger.error({ err: error }, 'Error draining NATS connection');
-
-    try {
-      await connection.close();
-      logger.warn('NATS connection force closed after drain failure');
-    } catch (closeError) {
-      logger.error({ err: closeError }, 'Error force closing NATS connection');
-    }
   }
 };
