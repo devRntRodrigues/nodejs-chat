@@ -7,12 +7,6 @@ services:
       - '4222:4222'
       - '8222:8222'
     command: ['-js', '-m', '8222']
-    healthcheck:
-      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8222/healthz']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
     networks:
       - chat-network
 
@@ -76,8 +70,6 @@ services:
       - /app/apps/api/node_modules
     depends_on:
       mongo:
-        condition: service_healthy
-      nats:
         condition: service_healthy
     networks:
       - chat-network

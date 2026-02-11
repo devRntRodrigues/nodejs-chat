@@ -36,7 +36,7 @@ export const reply = (connection: NatsConnection, message: Msg, payload: any) =>
     return;
   }
   connection.publish(message.reply, JSON.stringify(payload));
-  logger.info({ message, payload }, 'Replied to message to topic ${message.reply}');
+  logger.info({ message, payload }, `Replied to message to topic ${message.reply}`);
 };
 
 export const closeBroker = async (connection: NatsConnection): Promise<void> => {
