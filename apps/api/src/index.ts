@@ -6,6 +6,10 @@ import { connectDB, disconnectDB } from './config/db';
 import { createApp } from './server';
 import { createSocketServer } from './config/socket';
 import { setupSocketHandlers } from './socket/handlers';
+import { setupBrokerHandlers } from './broker/broker.handlers';
+import { initBroker, getBrokerConnection } from './broker/broker.module';
+import { startBrokerServer } from './broker/broker.server';
+import { closeBroker } from './broker/broker.service';
 import { logger } from './config/logger';
 
 interface StartServerOptions {
@@ -23,12 +27,16 @@ export async function startServer(options: StartServerOptions = {}): Promise<Ser
 
   await connectDB(process.env.MONGODB_URI || config.MONGO_URI);
 
+  const brokerConnection = await initBroker();
+
   const app = createApp();
 
   const httpServer = createServer(app);
 
   const io = createSocketServer(httpServer);
 
+  setupBrokerHandlers(brokerConnection, io);
+  startBrokerServer(brokerConnection);
   setupSocketHandlers(io);
 
   await new Promise<void>((resolve) => {
@@ -56,7 +64,12 @@ export async function stopServer({
       logger.info('Socket.IO server closed');
       httpServer.close(async () => {
         logger.info('HTTP server closed');
+
+        await closeBroker(getBrokerConnection());
+        logger.info('NATS broker closed');
+
         await disconnectDB();
+
         resolve();
       });
     });
@@ -67,7 +80,6 @@ async function start() {
   try {
     const { httpServer, io } = await startServer();
 
-    // Graceful shutdown
     const shutdown = async (signal: string) => {
       logger.info(`${signal} received, shutting down gracefully...`);
       await stopServer({ httpServer, io });

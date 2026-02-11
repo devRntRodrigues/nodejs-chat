@@ -1,7 +1,24 @@
 services:
+  nats:
+    image: nats:latest
+    container_name: chat-api-nats-test
+    restart: unless-stopped
+    ports:
+      - '4222:4222'
+      - '8222:8222'
+    command: ['-js', '-m', '8222']
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8222/healthz']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - chat-network
+
   mongo:
     image: mongo:7
-    container_name: chat-api-mongo
+    container_name: chat-api-mongo-test
     restart: unless-stopped
     ports:
       - '27017:27017'
@@ -21,7 +38,7 @@ services:
 
   mongo-express:
     image: mongo-express:latest
-    container_name: chat-api-mongo-express
+    container_name: chat-api-mongo-express-test
     restart: unless-stopped
     ports:
       - '8081:8081'
@@ -40,7 +57,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: chat-api-backend
+    container_name: chat-api-backend-test
     working_dir: /app
     command: pnpm --filter api dev
     ports:
@@ -49,6 +66,7 @@ services:
       - NODE_ENV=development
       - PORT=3001
       - MONGO_URI=mongodb://admin:password@mongo:27017/chat?authSource=admin
+      - NATS_URL=nats://nats:4222
       - JWT_SECRET=${JWT_SECRET:-dev_secret_change_in_production_min_32_chars}
       - JWT_EXPIRES_IN=7d
       - CORS_ORIGIN=http://localhost:3000
@@ -59,6 +77,8 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+      nats:
+        condition: service_healthy
     networks:
       - chat-network
     restart: unless-stopped
@@ -67,7 +87,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: chat-api-frontend
+    container_name: chat-api-frontend-test
     working_dir: /app
     command: pnpm --filter web dev --hostname 0.0.0.0
     ports:
