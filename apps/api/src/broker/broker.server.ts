@@ -30,7 +30,6 @@ async function handleBrokerMessage(connection: NatsConnection, msg: Msg): Promis
     return;
   }
 
-  // Parse JSON payload with specific error handling
   let payload: unknown;
   try {
     payload = JSON.parse(msg.data.toString());
@@ -45,7 +44,6 @@ async function handleBrokerMessage(connection: NatsConnection, msg: Msg): Promis
     return;
   }
 
-  // Handle the message with parsed payload
   try {
     const response = await Promise.resolve(handler(payload, msg));
 

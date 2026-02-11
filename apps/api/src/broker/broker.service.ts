@@ -8,12 +8,12 @@ import {
 import { logger } from '../config/logger';
 import { omit } from 'lodash-es';
 
-export type MqttHandler = (topic: string, payload: any, message: Msg) => void;
+export type MqttHandler = (topic: string, payload: unknown, message: Msg) => void;
 
 export const publish = (
   connection: NatsConnection,
   topic: string,
-  payload: any,
+  payload: unknown,
   opts?: Partial<PublishOptions>
 ): void => {
   logger.info({ topic, payload }, 'Publishing message to topic');
@@ -30,7 +30,7 @@ export const subscribe = (
   return connection.subscribe(topic, omit(options, ['onTimeout']));
 };
 
-export const reply = (connection: NatsConnection, message: Msg, payload: any) => {
+export const reply = (connection: NatsConnection, message: Msg, payload: unknown) => {
   if (!message.reply) {
     logger.error({ message }, 'Message has no reply');
     return;

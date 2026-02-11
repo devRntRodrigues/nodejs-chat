@@ -14,10 +14,6 @@ import {
 import { handleUserConnect, handleUserDisconnect } from './services/presence.broker.service';
 import { handleTypingStart, handleTypingStop } from './services/typing.broker.service';
 
-/**
- * Registers all NATS broker handlers. Requires Socket.IO server instance
- * for handlers that emit real-time events to connected clients.
- */
 export function setupBrokerHandlers(_connection: NatsConnection, io: SocketIOServer): void {
   logger.info('Setting up NATS broker handlers');
 
